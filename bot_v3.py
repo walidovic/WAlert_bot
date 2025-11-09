@@ -102,27 +102,73 @@ def stoch_rsi(closes, rsi_period=14, stoch_period=14):
 def generate_signal_from_lists(closes, volumes):
     if len(closes) < 60:
         return None
+
     i = len(closes) - 1
-    ema20 = ema(closes, 20)
-    ema50 = ema(closes, 50)
-    srs = stoch_rsi(closes, 14, 14)
-    vol_usdt = closes[i] * volumes[i]
+    c = closes
+    v = volumes
+
+    # مؤشرات أساسية
+    ema20 = ema(c, 20)
+    ema50 = ema(c, 50)
+    srs   = stoch_rsi(c, 14, 14)
+
+    # حجم تداول بالدولار + متوسّط الحجم
+    vol_usdt = c[i] * v[i]
+    avg_vol  = sum(v[max(0, i-19):i+1]) / min(20, i+1) if i >= 0 else v[i]
     if vol_usdt < MIN_VOL_USDT:
         return None
+
+    # حدود قابلة للتعديل من Env
+    try:
+        STOCH_L  = float(os.environ.get("STOCH_LOW",  "30"))
+        STOCH_H  = float(os.environ.get("STOCH_HIGH", "70"))
+        BR_PCT   = float(os.environ.get("BREAKOUT_PCT", "0.30")) / 100.0
+        VOL_MULT = float(os.environ.get("VOL_SPIKE_MULT", "1.5"))
+    except:
+        STOCH_L, STOCH_H, BR_PCT, VOL_MULT = 30, 70, 0.003, 1.5
+
+    # 1) إشارة تقاطع (مخففة)
     bull_cross = ema20[i] > ema50[i] and ema20[i-1] <= ema50[i-1]
     bear_cross = ema20[i] < ema50[i] and ema20[i-1] >= ema50[i-1]
-    buy = bull_cross and srs[i-1] < 20 and srs[i] > srs[i-1]
-    sell = bear_cross and srs[i-1] > 80 and srs[i] < srs[i-1]
+    buy_cross  = bull_cross and srs[i-1] < STOCH_L and srs[i] >= srs[i-1]
+    sell_cross = bear_cross and srs[i-1] > STOCH_H and srs[i] <= srs[i-1]
+
+    # 2) إشارة اختراق (Momentum Breakout)
+    # شراء: السعر فوق EMA20 و EMA50 + اختراق % فوق EMA20 + Stoch قوي + حجم أعلى من المتوسط
+    buy_breakout  = (c[i] > ema20[i] > ema50[i]) and (c[i] > ema20[i] * (1 + BR_PCT)) \
+                    and (srs[i] >= max(55, STOCH_H - 10)) and (v[i] >= avg_vol * VOL_MULT)
+    # بيع: عكسها
+    sell_breakout = (c[i] < ema20[i] < ema50[i]) and (c[i] < ema20[i] * (1 - BR_PCT)) \
+                    and (srs[i] <= min(45, STOCH_L + 10)) and (v[i] >= avg_vol * VOL_MULT)
+
+    mode = os.environ.get("SIGNAL_MODE", "both").lower()
+    buy  = sell = False
+    if mode == "cross":
+        buy, sell = buy_cross, sell_cross
+    elif mode == "breakout":
+        buy, sell = buy_breakout, sell_breakout
+    else:  # both
+        buy  = buy_cross or buy_breakout
+        sell = sell_cross or sell_breakout
+
     if not (buy or sell):
         return None
-    side = "BUY" if buy else "SELL"
-    entry = closes[i]
+
+    side  = "BUY" if buy else "SELL"
+    entry = c[i]
+
     if side == "BUY":
-        targets = [round(entry * (1 + p), 6) for p in TP_STEPS]
-        stop = round(entry * (1 - SL_PCT / 100.0), 6)
+        targets = [round(entry * (1 + p), 6) for p in TP_STEPS]  # 5 أهداف
+        stop    = round(entry * (1 - SL_PCT / 100.0), 6)
     else:
         targets = [round(entry * (1 - p), 6) for p in TP_STEPS]
-        stop = round(entry * (1 + SL_PCT / 100.0), 6)
+        stop    = round(entry * (1 + SL_PCT / 100.0), 6)
+
+    # معلومات إضافية في التنبيه
+    signal_note = "Cross" if (buy_cross or sell_cross) and not (buy_breakout or sell_breakout) else \
+                  "Breakout" if (buy_breakout or sell_breakout) and not (buy_cross or sell_cross) else \
+                  "Cross + Breakout"
+
     return {
         "side": side,
         "entry": round(entry, 6),
@@ -132,6 +178,8 @@ def generate_signal_from_lists(closes, volumes):
         "ema50": round(ema50[i], 6),
         "stochrsi": round(srs[i], 2),
         "volume_usdt": int(vol_usdt),
+        "avg_vol": int(avg_vol),
+        "note": signal_note,
     }
 
 # ------------------ Binance helpers (REST seed + WS) ------------------
