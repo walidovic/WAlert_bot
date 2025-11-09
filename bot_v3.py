@@ -264,15 +264,14 @@ def on_message(ws, message):
                 targets = sig["targets"]
                 targets_html = "\n".join([f"{i+1}. <code>{t}</code>" for i,t in enumerate(targets)])
                 text = (
-                    f"📣 <b>إشارة {sig['side']}</b> — <b>{sym}</b> ({TIMEFRAME})\n"
-                    f"⏱ {ts}\n"
-                    f"💰 السعر: <b>{sig['entry']}</b>\n"
-                    f"🎯 الأهداف:\n{targets_html}\n"
-                    f"🛑 ستوب: <b>{sig['stop']}</b>\n"
-                    f"📈 EMA20: {sig['ema20']} | EMA50: {sig['ema50']}\n"
-                    f"⚡️ StochRSI: {sig['stochrsi']} | حجم~ ${sig['volume_usdt']}\n"
-                    "ℹ️ نصيحة: قسّم الخروج على الأهداف وحرّك الستوب لــ BE بعد الهدف الأول."
-                )
+    f"📣 <b>إشارة {sig['side']}</b> — <b>{sym}</b> ({TIMEFRAME}) [{sig['note']}]\n"
+    f"💰 السعر: <b>{sig['entry']}</b>\n"
+    f"🎯 الأهداف:\n{targets_html}\n"
+    f"🛑 ستوب: <b>{sig['stop']}</b>\n"
+    f"📈 EMA20: {sig['ema20']} | EMA50: {sig['ema50']}\n"
+    f"⚡️ StochRSI: {sig['stochrsi']} | حجم~ ${sig['volume_usdt']} (avg~ ${sig['avg_vol']})"
+)
+
                 tg_send(text)
     except Exception:
         traceback.print_exc()
