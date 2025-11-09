@@ -136,11 +136,16 @@ def monitor_loop():
                     if last_alert_key.get(sym) != k:
                         last_alert_key[sym] = k
                         ts = datetime.fromtimestamp(ohlcv[-1][0]/1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-                        text = (
-                            f"📣 <b>إشارة {sig['side']}</b> — <b>{sym}</b> ({TIMEFRAME})\n"
-                            f"⏱ {ts}\n"
-                            f"💰 السعر: <b>{sig['entry']}</b>\n"
-                            f"🎯 الأهداف: " + ", ".join([f"<code>{t}</code>" for t in sig['targets']]) + "\n"
-                            f"🛑 ستوب: <b>{sig['stop']}</b>\n"
-                            f"📈 EMA20: {sig['ema20']} | EMA50: {sig['ema50']}\n"
-                            f"⚡️ Stoch
+                        targets_str = ", ".join([f"<code>{t}</code>" for t in sig['targets']])
+lines = [
+    f"📣 <b>إشارة {sig['side']}</b> — <b>{sym}</b> ({TIMEFRAME})",
+    f"⏱ {ts}",
+    f"💰 السعر: <b>{sig['entry']}</b>",
+    f"🎯 الأهداف: {targets_str}",
+    f"🛑 ستوب: <b>{sig['stop']}</b>",
+    f"📈 EMA20: {sig['ema20']} | EMA50: {sig['ema50']}",
+    f"⚡️ StochRSI: {sig['stochrsi']} | حجم~ ${sig['volume_usdt']}",
+    "ℹ️ نصيحة: وزّع الخروج على 2-3 أهداف وحرّك الستوب لـ BE بعد الهدف الأول."
+]
+text = "\n".join(lines)
+tg_send(text)
