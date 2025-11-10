@@ -321,7 +321,7 @@ def on_message(ws, message):
             last_alert_key[sym] = key
 
             # تجهيز الأهداف في رسالة عربية، BUY 🟢 / SELL 🔴
-            if sig:
+if sig:
     ts = datetime.fromtimestamp(k["t"]/1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     key = (sym, sig["side"], k["t"])
     if last_alert_key.get(sym) == key:
