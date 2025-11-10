@@ -321,29 +321,40 @@ def on_message(ws, message):
             last_alert_key[sym] = key
 
             # تجهيز الأهداف في رسالة عربية، BUY 🟢 / SELL 🔴
-            if sig["side"] == "BUY":
-    header = "🟢 <b>إشارة شراء</b>"
-else:
-    header = "🔴 <b>إشارة بيع</b>"
+            if sig:
+    ts = datetime.fromtimestamp(k["t"]/1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    key = (sym, sig["side"], k["t"])
+    if last_alert_key.get(sym) == key:
+        return
+    last_alert_key[sym] = key
 
-targets_html = "\n".join([f"   {i+1}) <code>{t}</code>" for i, t in enumerate(sig["targets"])])
+    # --- عنوان الإشعار: BUY/SELL ---
+    if sig["side"] == "BUY":
+        header = "🟢 <b>إشارة شراء</b>"
+    else:
+        header = "🔴 <b>إشارة بيع</b>"
 
-text = (
-    f"{header} — <b>{sym}</b>  •  {TIMEFRAME}\n"
-    f"سبب الإشارة: {sig['note']}\n"
-    f"الزمن: {ts}\n"
-    f"\n"
-    f"السعر الحالي: <b>{sig['entry']}</b>\n"
-    f"الأهداف (TP):\n{targets_html}\n"
-    f"الوقف (SL): <b>{sig['stop']}</b>\n"
-    f"\n"
-    f"مؤشرات:\n"
-    f"• EMA20: {sig['ema20']}  |  EMA50: {sig['ema50']}\n"
-    f"• RSI(14): {sig.get('rsi','-')}  |  StochRSI: {sig['stochrsi']}\n"
-    f"• حجم: ~${sig['volume_usdt']}  (متوسط: ~${sig['avg_vol']})\n"
-    f"• ATR14: {sig.get('atr','-')}\n"
-)
-tg_send(text)
+    # --- تنسيق الأهداف ---
+    targets_html = "\n".join([f"   {i+1}) <code>{t}</code>" for i, t in enumerate(sig["targets"])])
+
+    # --- نص الرسالة النهائي ---
+    text = (
+        f"{header} — <b>{sym}</b>  •  {TIMEFRAME}\n"
+        f"سبب الإشارة: {sig['note']}\n"
+        f"الزمن: {ts}\n"
+        f"\n"
+        f"السعر الحالي: <b>{sig['entry']}</b>\n"
+        f"الأهداف (TP):\n{targets_html}\n"
+        f"الوقف (SL): <b>{sig['stop']}</b>\n"
+        f"\n"
+        f"مؤشرات:\n"
+        f"• EMA20: {sig['ema20']}  |  EMA50: {sig['ema50']}\n"
+        f"• RSI(14): {sig.get('rsi','-')}  |  StochRSI: {sig['stochrsi']}\n"
+        f"• حجم: ~${sig['volume_usdt']}  (متوسط: ~${sig['avg_vol']})\n"
+        f"• ATR14: {sig.get('atr','-')}\n"
+    )
+
+    tg_send(text)
 
     except Exception:
         traceback.print_exc()
