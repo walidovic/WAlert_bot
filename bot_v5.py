@@ -362,7 +362,10 @@ app = Flask(__name__)
 def root():
     return "OK"
 
-@app.get("/health") def health(): return "healthy"
+@app.get("/health")
+def health():
+    return "healthy"
+
 @app.get("/test-tg")
 def test_tg():
     tg_send("🤖 اختبار: البوت يرسل تيليجرام بنجاح.")
