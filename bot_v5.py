@@ -358,7 +358,10 @@ def ws_loop():
 # ========= Flask =========
 app = Flask(__name__)
 
-@app.get("/")     def root():    return "OK"
+@app.get("/")
+def root():
+    return "OK"
+
 @app.get("/health") def health(): return "healthy"
 @app.get("/test-tg")
 def test_tg():
