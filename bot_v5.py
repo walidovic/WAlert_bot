@@ -401,14 +401,14 @@ def on_message(ws, message):
 
             text = (
                 f"{header} — <b>{sym}</b>  •  {TIMEFRAME}\n"
-                f"سبب الإشارة: {sig['note']}\n"
-                f"الزمن: {ts}\n"
+                f"✍ سبب الإشارة: {sig['note']}\n"
+                f"🕰 الزمن: {ts}\n"
                 f"\n"
-                f"السعر الحالي: <b>{sig['entry']}</b>\n"
-                f"الأهداف (TP):\n{targets_html}\n"
-                f"الوقف (SL): <b>{sig['stop']}</b>\n"
+                f"💰 السعر الحالي: <b>{sig['entry']}</b>\n"
+                f"🎯 الأهداف (TP):\n{targets_html}\n"
+                f"✋ الوقف (SL): <b>{sig['stop']}</b>\n"
                 f"\n"
-                f"مؤشرات:\n"
+                f"📊 مؤشرات:\n"
                 f"• EMA20: {sig['ema20']}  |  EMA50: {sig['ema50']}\n"
                 f"• RSI(14): {sig.get('rsi','-')}  |  StochRSI: {sig['stochrsi']}\n"
                 f"• حجم: ~${sig['volume_usdt']}  (متوسط: ~${sig['avg_vol']})\n"
