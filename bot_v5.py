@@ -322,21 +322,29 @@ def on_message(ws, message):
 
             # تجهيز الأهداف في رسالة عربية، BUY 🟢 / SELL 🔴
             if sig["side"] == "BUY":
-                header = "🟢 <b>إشارة شراء</b>"
-            else:
-                header = "🔴 <b>إشارة بيع</b>"
+    header = "🟢 <b>إشارة شراء</b>"
+else:
+    header = "🔴 <b>إشارة بيع</b>"
 
-            targets_html = "\n".join([f"{i+1}. <code>{t}</code>" for i,t in enumerate(sig["targets"])])
-            text = (
-                f"{header} — <b>{sym}</b> ({TIMEFRAME}) [{sig['note']}]\n"
-                f"⏱ {ts}\n"
-                f"💰 السعر: <b>{sig['entry']}</b>\n"
-                f"🎯 الأهداف:\n{targets_html}\n"
-                f"🛑 الوقف: <b>{sig['stop']}</b>\n"
-                f"📈 EMA20: {sig['ema20']} | EMA50: {sig['ema50']}\n"
-                f"⚡️ StochRSI: {sig['stochrsi']} | حجم~ ${sig['volume_usdt']} (avg~ ${sig['avg_vol']})"
-            )
-            tg_send(text)
+targets_html = "\n".join([f"   {i+1}) <code>{t}</code>" for i, t in enumerate(sig["targets"])])
+
+text = (
+    f"{header} — <b>{sym}</b>  •  {TIMEFRAME}\n"
+    f"سبب الإشارة: {sig['note']}\n"
+    f"الزمن: {ts}\n"
+    f"\n"
+    f"السعر الحالي: <b>{sig['entry']}</b>\n"
+    f"الأهداف (TP):\n{targets_html}\n"
+    f"الوقف (SL): <b>{sig['stop']}</b>\n"
+    f"\n"
+    f"مؤشرات:\n"
+    f"• EMA20: {sig['ema20']}  |  EMA50: {sig['ema50']}\n"
+    f"• RSI(14): {sig.get('rsi','-')}  |  StochRSI: {sig['stochrsi']}\n"
+    f"• حجم: ~${sig['volume_usdt']}  (متوسط: ~${sig['avg_vol']})\n"
+    f"• ATR14: {sig.get('atr','-')}\n"
+)
+tg_send(text)
+
     except Exception:
         traceback.print_exc()
 
